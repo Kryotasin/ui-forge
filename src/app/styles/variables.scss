@@ -1,0 +1,50 @@
+// src/app/styles/variables.scss
+
+// Bootstrap variable overrides
+$primary: #0a4275; // Darker blue
+$secondary: #6c757d;
+$dark: #343a40;
+$light: #f8f9fa;
+$success: #28a745;
+$info: #17a2b8;
+$warning: #ffc107;
+$danger: #dc3545;
+
+// Other variables
+$body-bg: #f8f9fa;
+$body-color: #212529;
+$link-color: $primary;
+$link-hover-color: darken($link-color, 15%);
+
+// Border radius
+$border-radius: 0.25rem;
+$border-radius-lg: 0.3rem;
+$border-radius-sm: 0.2rem;
+
+// Box shadows
+$box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+$box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+$box-shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+
+// Import Bootstrap after variables
+@import "bootstrap/scss/bootstrap";
+
+// Custom responsive rules for 20-60-20 layout
+@include media-breakpoint-up(md) {
+    .row-layout {
+        >.col-sidebar {
+            flex: 0 0 20%;
+            max-width: 20%;
+        }
+
+        >.col-main {
+            flex: 0 0 60%;
+            max-width: 60%;
+        }
+
+        >.col-rightnav {
+            flex: 0 0 20%;
+            max-width: 20%;
+        }
+    }
+}
