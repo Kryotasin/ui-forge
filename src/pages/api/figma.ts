@@ -1,6 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '10mb', // Set to a higher value if needed
+        },
+        responseLimit: false, // Disable response size limit
+    },
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     // Only allow POST requests
     if (req.method !== 'POST') {
