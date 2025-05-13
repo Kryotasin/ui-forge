@@ -49,3 +49,12 @@ export function findButtonComponents(response: FigmaFileResponse): string | null
 
     return buttonCanvas ? buttonCanvas.id : null;
 }
+
+/**
+ * Parses a Figma file URL to extract the file key
+ */
+export const extractFigmaFileKey = (url: string): string | null => {
+    // Figma file URLs typically look like: https://www.figma.com/file/abcdefg123456/FileName
+    const match = url.match(/figma\.com\/file\/([^/]+)/);
+    return match ? match[1] : null;
+};

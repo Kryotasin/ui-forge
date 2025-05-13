@@ -65,3 +65,26 @@ export interface CanvasMap {
         children: CanvasMap;
     };
 }
+
+// src/lib/types/figma.ts
+// Types for Figma data structure - helps with strongly typing your MongoDB data
+
+export interface FigmaNode {
+    id: string;
+    name: string;
+    type: string;
+    [key: string]: any; // For other properties that vary by node type
+}
+
+export interface FigmaNodeData {
+    id: string;           // Unique identifier for this node data entry
+    nodeData: {
+        document?: FigmaNode;
+        nodes?: Record<string, { document: FigmaNode }>;
+        components?: Record<string, any>;
+        styles?: Record<string, any>;
+        [key: string]: any; // Other top-level properties from Figma API
+    };
+    createdAt: Date;
+    updatedAt: Date;
+}
