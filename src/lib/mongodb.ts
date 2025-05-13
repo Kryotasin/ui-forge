@@ -1,10 +1,15 @@
+// src/lib/mongodb.ts
 import { MongoClient, ServerApiVersion } from 'mongodb';
 
-if (!process.env.MONGODB_URI) {
-    throw new Error('Please add your MongoDB URI to .env.local');
+// Check for required environment variables
+if (!process.env.MONGODB_USERNAME || !process.env.MONGODB_PASSWORD) {
+    throw new Error('Please add your MongoDB username and password to .env.local');
 }
 
-const uri = process.env.MONGODB_URI;
+// Construct the MongoDB URI with credentials from environment variables
+const uri = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@cluster0.jio8mfu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+
+// MongoDB client options
 const options = {
     serverApi: {
         version: ServerApiVersion.v1,

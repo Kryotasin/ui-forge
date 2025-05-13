@@ -35,6 +35,8 @@ export default async function handler(
         // Connect to MongoDB
         const client = await clientPromise;
         const db = client.db(process.env.MONGODB_DB_NAME || 'figma_data');
+        console.log(`Connected to database: ${process.env.MONGODB_DB_NAME || 'figma_data'}`);
+
         const collection = db.collection('nodes_dev_store');
 
         // Check if document with this id already exists
@@ -67,7 +69,7 @@ export default async function handler(
 
         return res.status(500).json({
             success: false,
-            message: 'An error occurred while saving the node data.',
+            message: `An error occurred while saving the node data: ${error.message}`,
         });
     }
 }

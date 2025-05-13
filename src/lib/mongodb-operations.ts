@@ -9,11 +9,22 @@ import { FigmaNodeData } from '@/types/figma';
 // Get the database name from environment variables or use default
 const getDbName = () => process.env.MONGODB_DB_NAME || 'figma_data';
 
+// Initialize the database connection
+async function initConnection() {
+    try {
+        const client = await clientPromise;
+        console.log("Successfully connected to MongoDB");
+        return client.db(getDbName());
+    } catch (error) {
+        console.error("Failed to connect to MongoDB:", error);
+        throw error;
+    }
+}
+
 // Save node data to MongoDB
 export async function saveNodeData(id: string, nodeData: any): Promise<{ success: boolean; message: string; data?: any }> {
     try {
-        const client = await clientPromise;
-        const db = client.db(getDbName());
+        const db = await initConnection();
         const collection = db.collection('nodes_dev_store');
 
         // Check if document with this id already exists
@@ -50,8 +61,7 @@ export async function saveNodeData(id: string, nodeData: any): Promise<{ success
 // Get node data by id
 export async function getNodeDataById(id: string): Promise<FigmaNodeData | null> {
     try {
-        const client = await clientPromise;
-        const db = client.db(getDbName());
+        const db = await initConnection();
         const collection = db.collection('nodes_dev_store');
 
         const nodeData = await collection.findOne({ id });
@@ -65,8 +75,7 @@ export async function getNodeDataById(id: string): Promise<FigmaNodeData | null>
 // Update existing node data
 export async function updateNodeData(id: string, nodeData: any): Promise<{ success: boolean; message: string }> {
     try {
-        const client = await clientPromise;
-        const db = client.db(getDbName());
+        const db = await initConnection();
         const collection = db.collection('nodes_dev_store');
 
         const result = await collection.updateOne(
