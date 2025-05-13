@@ -16,51 +16,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        const { fileKey, accessToken, getComponents = false } = req.body;
+        const { fileKey, accessToken, nodeIds } = req.body;
 
-        if (!fileKey || !accessToken) {
+        if (!fileKey || !accessToken || !nodeIds) {
             return res.status(400).json({
-                message: 'File key and access token are required'
+                message: 'File key, access token, and node IDs are required',
             });
         }
 
-        // If getComponents is true, fetch all components in the file
-        if (getComponents) {
-            const componentsResponse = await axios.get(
-                `https://api.figma.com/v1/files/${fileKey}/components`,
-                {
-                    headers: {
-                        'X-Figma-Token': accessToken
-                    }
-                }
-            );
-
-            return res.status(200).json({
-                message: 'Successfully retrieved file components',
-                components: componentsResponse.data
+        if (!Array.isArray(nodeIds)) {
+            return res.status(400).json({
+                message: 'Node IDs must be an array',
             });
         }
 
-        // Default: get file metadata
-        const metadataResponse = await axios.get(
-            `https://api.figma.com/v1/files/${fileKey}/metadata`,
+        // Fetch specific nodes from the Figma file
+        const nodesResponse = await axios.get(
+            `https://api.figma.com/v1/files/${fileKey}/nodes`,
             {
                 headers: {
-                    'X-Figma-Token': accessToken
-                }
+                    'X-Figma-Token': accessToken,
+                },
+                params: {
+                    ids: nodeIds.join(','), // Join node IDs into a comma-separated string
+                },
             }
         );
 
         return res.status(200).json({
-            message: 'Successfully retrieved file metadata',
-            metadata: metadataResponse.data
+            message: 'Successfully retrieved nodes',
+            nodes: nodesResponse.data,
         });
     } catch (error: any) {
-        console.error('Error fetching Figma data:', error);
+        console.error('Error fetching Figma nodes:', error);
 
         return res.status(error.response?.status || 500).json({
-            message: 'Failed to fetch Figma data',
-            error: error.response?.data || error.message
+            message: 'Failed to fetch Figma nodes',
+            error: error.response?.data || error.message,
         });
     }
 }

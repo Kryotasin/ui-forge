@@ -1,0 +1,51 @@
+// src/utils/figmaParser.ts
+
+import { FigmaFileResponse, CanvasMap } from '@/types/figma';
+
+/**
+ * Extract canvas (page) names and IDs from Figma file response
+ * @param response The Figma API response
+ * @returns An object mapping canvas names to their IDs
+ */
+export function extractCanvasMap(response: FigmaFileResponse): CanvasMap {
+    const canvasMap: CanvasMap = {};
+    let currentParent: string | null = null;
+
+    // Extract all canvases from the document
+    const canvases = response.document.children || [];
+
+    // Map each canvas name to its ID, creating a hierarchy
+    canvases.forEach(canvas => {
+        if (canvas.name.includes("↳")) {
+            // It's a child canvas
+            const childName = canvas.name.replace("↳", "").trim();
+            if (currentParent) {
+                if (!canvasMap[currentParent].children) {
+                    canvasMap[currentParent].children = {};
+                }
+                canvasMap[currentParent].children[childName] = { id: canvas.id, children: {} };
+            }
+        } else {
+            // It's a new parent canvas
+            const parentName = canvas.name.trim();
+            currentParent = parentName;
+            canvasMap[parentName] = { id: canvas.id, children: {} };
+        }
+    });
+
+    return canvasMap;
+}
+
+/**
+ * Get all buttons from the Button canvas
+ * This is a placeholder example - actual implementation would require fetching
+ * the specific canvas with its children using the /nodes endpoint
+ */
+export function findButtonComponents(response: FigmaFileResponse): string | null {
+    // Find the Button canvas ID
+    const buttonCanvas = response.document.children.find(canvas =>
+        canvas.name.includes('Button') || canvas.name.trim() === 'Button'
+    );
+
+    return buttonCanvas ? buttonCanvas.id : null;
+}

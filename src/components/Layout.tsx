@@ -1,9 +1,9 @@
 import React, { ReactNode } from 'react';
 import Header from './Header';
 import Footer from './Footer';
-import Sidebar from './Sidebar';
 import MainContent from './MainContent';
 import RightNav from './RightNav';
+import Sidebar from './Sidebar';
 
 interface LayoutProps {
     children: ReactNode;

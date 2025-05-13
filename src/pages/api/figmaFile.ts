@@ -1,23 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
-
-export const config = {
-    api: {
-        bodyParser: {
-            sizeLimit: '10mb', // Set to a higher value if needed
-        },
-        responseLimit: false, // Disable response size limit
-    },
-};
+import { FigmaFileResponse } from '@/types/figma';
+import { extractCanvasMap, findButtonComponents } from '@/utils/figmaParser';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    // Only allow POST requests
     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Method not allowed' });
     }
 
     try {
-        const { fileKey, accessToken, depth = 1 } = req.body; // Default depth to 1
+        const { fileKey, accessToken, depth = 1 } = req.body;
 
         if (!fileKey || !accessToken) {
             return res.status(400).json({
@@ -34,10 +26,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         );
 
-        return res.status(200).json(response.data);
+        const figmaData = response.data as FigmaFileResponse;
+
+        // Get pages as a map (name -> id)
+        const pagesMap = extractCanvasMap(figmaData);
+
+        // Find the Button page ID if needed
+        const buttonPageId = findButtonComponents(figmaData);
+
+        return res.status(200).json({
+            pagesMap,
+            buttonPageId,
+            fileInfo: {
+                name: figmaData.name,
+                lastModified: figmaData.lastModified
+            }
+        });
     } catch (error: any) {
         return res.status(error.response?.status || 500).json({
-            message: 'Failed to fetch Figma file',
+            message: 'Failed to process Figma file',
             error: error.response?.data || error.message
         });
     }
