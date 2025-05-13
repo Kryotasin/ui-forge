@@ -58,3 +58,27 @@ export const extractFigmaFileKey = (url: string): string | null => {
     const match = url.match(/figma\.com\/file\/([^/]+)/);
     return match ? match[1] : null;
 };
+
+export const pruneNodeData = (data: any) => {
+    // Deep clone to avoid reference issues
+    const simplified = JSON.parse(JSON.stringify(data));
+
+    // Remove heavy properties
+    Object.values(simplified.nodes || {}).forEach((node: any) => {
+        if (node.document) {
+            // Remove detailed vector data
+            delete node.document.vectorNetwork;
+            // Remove export settings
+            delete node.document.exportSettings;
+            // Remove style overrides
+            delete node.document.styleOverrideTable;
+            // Remove detailed children recursively
+            if (node.document.children && node.document.children.length > 10) {
+                node.document.children = node.document.children.slice(0, 10);
+                node.document.childrenTruncated = true;
+            }
+        }
+    });
+
+    return simplified;
+}

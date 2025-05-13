@@ -1,9 +1,11 @@
 // src/app/page.tsx
+import { Suspense } from 'react';
+import MainContent from './components/MainContent';
+
 export default function Home() {
   return (
-    <div className="p-3">
-      <h1 className="fs-4 fw-bold mb-3">Welcome to the Homepage</h1>
-      <p>This content will appear in the main content area of the layout.</p>
-    </div>
+    <Suspense fallback={<div>Loading main content...</div>}>
+      <MainContent />
+    </Suspense>
   );
 }

@@ -2,6 +2,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import clientPromise from '@/lib/mongodb';
 
+// Add this export configuration
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '50mb', // Increase size limit
+        },
+        responseLimit: false, // Disable response size limit
+    },
+};
+
 type ResponseData = {
     success: boolean;
     message: string;
