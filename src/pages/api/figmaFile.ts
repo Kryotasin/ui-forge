@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        const { fileKey, accessToken } = req.body;
+        const { fileKey, accessToken, depth = 1 } = req.body; // Default depth to 1
 
         if (!fileKey || !accessToken) {
             return res.status(400).json({
@@ -25,11 +25,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             });
         }
 
-        const response = await axios.get(`https://api.figma.com/v1/files/${fileKey}`, {
-            headers: {
-                'X-Figma-Token': accessToken
+        const response = await axios.get(
+            `https://api.figma.com/v1/files/${fileKey}?depth=${depth}`,
+            {
+                headers: {
+                    'X-Figma-Token': accessToken,
+                },
             }
-        });
+        );
 
         return res.status(200).json(response.data);
     } catch (error: any) {

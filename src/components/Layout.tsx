@@ -15,7 +15,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Header />
 
             <div className="flex-grow-1">
-                <div className="container-fluid">
+                <div className="container-fluid mh-100">
                     <div className="row row-layout">
                         <div className="col-12 col-md-3 col-sidebar">
                             <Sidebar />
