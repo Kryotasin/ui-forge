@@ -18,7 +18,7 @@ export default function NodeSelector() {
                 },
                 body: JSON.stringify({
                     fileKey: 'qyrtCkpQQ1yq1Nv3h0mbkq', // Your Figma file key
-                    accessToken: 'figd_8OT0PLXhNjd9zEmvKXZZBZdYb62YOTJkhGo7pydD' // Your Figma access token
+                    accessToken: process.env.NEXT_PUBLIC_FIGMA_ACCESS_TOKEN, // Fetch from .env
                 }),
             });
 
