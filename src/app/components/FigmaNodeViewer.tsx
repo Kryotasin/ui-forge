@@ -40,7 +40,7 @@ export default async function FigmaNodeViewer({ nodeId }: { nodeId: string }) {
 // Server component to render node details
 function NodeDetails({ data }: { data: any }) {
     if (!data) return <p>No data available</p>;
-
+    console.log('Node data:', data);
     return (
         <div className="mt-2">
             <div className="grid grid-cols-2 gap-4">
@@ -48,8 +48,8 @@ function NodeDetails({ data }: { data: any }) {
                 <div>
                     <h4 className="font-medium">Node Properties</h4>
                     <ul className="list-disc pl-5 mt-2">
-                        {data.name && <li>Name: {data.name}</li>}
-                        {data.type && <li>Type: {data.type}</li>}
+                        {data.document.name && <li>Name: {data.document.name}</li>}
+                        {data.document.type && <li>Type: {data.document.type}</li>}
                         {/* Add other properties you need to render */}
                     </ul>
                 </div>

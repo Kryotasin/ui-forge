@@ -22,7 +22,7 @@ export default async function handler(
         // Get only the file structure - much lighter than full node data
         const response = await axios.get(`https://api.figma.com/v1/files/${fileKey}`, {
             headers: {
-                'X-Figma-Token': process.env.FIGMA_ACCESS_TOKEN as string,
+                'X-Figma-Token': process.env.NEXT_PUBLIC_FIGMA_ACCESS_TOKEN as string,
             },
         });
 

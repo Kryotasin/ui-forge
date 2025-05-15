@@ -5,7 +5,7 @@
 export async function fetchFigmaNode(nodeId: string) {
     try {
         // Get Figma access token from environment
-        const accessToken = process.env.FIGMA_ACCESS_TOKEN;
+        const accessToken = process.env.NEXT_PUBLIC_FIGMA_ACCESS_TOKEN;
         const fileKey = 'qyrtCkpQQ1yq1Nv3h0mbkq'; // Your Figma file key
 
         // Fetch data from Figma API directly on the server
@@ -17,7 +17,7 @@ export async function fetchFigmaNode(nodeId: string) {
                 },
             }
         );
-
+        console.log(`Fetching node data for: ${nodeId}`, accessToken);
         if (!response.ok) {
             throw new Error(`Figma API error: ${response.statusText}`);
         }

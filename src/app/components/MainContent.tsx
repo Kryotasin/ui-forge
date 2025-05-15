@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import FigmaNodeViewer from "./FigmaNodeViewer";
 
 export default async function MainContent() {
-    // Server-side data fetching here if needed
+    const nodeId = '6543:36648';
 
     return (
         <div className="main-content">
