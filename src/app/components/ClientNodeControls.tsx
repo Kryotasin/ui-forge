@@ -60,7 +60,7 @@ export default function ClientNodeControls({ initialNodeId = '' }: { initialNode
             setSelectedChildId(null);
 
             // Update URL to remove node parameter
-            router.push('/figma-viewer');
+            // router.push('/figma-viewer');
         }
     };
 
@@ -72,9 +72,9 @@ export default function ClientNodeControls({ initialNodeId = '' }: { initialNode
         setSelectedChildId(nodeId);
 
         // Update URL with selected node
-        if (nodeId) {
-            router.push(`/figma-viewer?node=${nodeId}`);
-        }
+        // if (nodeId) {
+        // router.push(`/figma-viewer?node=${nodeId}`);
+        // }
     };
 
     return (

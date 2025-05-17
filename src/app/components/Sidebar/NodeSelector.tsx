@@ -23,14 +23,12 @@ export default function NodeSelector() {
     const [saveStatus, setSaveStatus] = useState<SaveStatusType | null>(null);
 
     // Get the base URL from environment or default to localhost
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-
     const fetchFigmaPages = async () => {
         setLoading(true);
         setSaveStatus(null);
 
         try {
-            const response = await fetch(`${baseUrl}/api/figmaFile`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/figmaStructure`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -64,7 +62,7 @@ export default function NodeSelector() {
         try {
             // Step 1: Fetch node data from Figma API
             console.log(`Fetching node data for: ${selectedChildId}`);
-            const nodeResponse = await fetch(`${baseUrl}/api/figmaNodes`, {
+            const nodeResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/figmaNodes`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -87,7 +85,7 @@ export default function NodeSelector() {
             setSavingData(true);
             console.log('Saving node data to MongoDB...');
 
-            const saveResponse = await fetch(`${baseUrl}/api/figmaSaveNodesData`, {
+            const saveResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/figmaSaveNodesData`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

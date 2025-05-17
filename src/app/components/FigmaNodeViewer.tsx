@@ -1,7 +1,6 @@
 // src/app/components/FigmaNodeViewer.tsx
 import { Suspense } from 'react';
-import ClientNodeControls from './ClientNodeControls';
-import { fetchFigmaNode } from '@/lib/figma-server';
+// import ClientNodeControls from './ClientNodeControls';
 import { pruneNodeData } from '@/utils/figmaParser';
 
 // This is a Server Component
@@ -10,28 +9,19 @@ export default async function FigmaNodeViewer({ nodeId }: { nodeId: string }) {
     if (!nodeId) {
         return (
             <div className="p-4 bg-white rounded-lg shadow">
-                <ClientNodeControls />
+                {/* <ClientNodeControls /> */}
             </div>
         );
     }
 
-    // Fetch and process node data on the server
-    const nodeData = await fetchFigmaNode(nodeId);
-
-    // Process/prune data on the server to reduce size
-    const processedData = pruneNodeData(nodeData);
-
-    // Save to MongoDB directly on the server
-    await saveNodeToMongoDB(nodeId, processedData);
-
-    // Render the processed node data
     return (
         <div className="p-4 bg-white rounded-lg shadow">
-            <ClientNodeControls initialNodeId={nodeId} />
+            {/* <ClientNodeControls initialNodeId={nodeId} /> */}
 
             <div className="mt-4">
                 <h3 className="text-lg font-medium">Node Details</h3>
-                <NodeDetails data={processedData} />
+                {/* <NodeDetails data={processedData} /> */}
+                no node details
             </div>
         </div>
     );
@@ -85,65 +75,4 @@ function NodeDetails({ data }: { data: any }) {
             )}
         </div>
     );
-}
-
-// Server-side function to save node to MongoDB
-async function saveNodeToMongoDB(id: string, nodeData: any) {
-    // This runs on the server only
-    const { MongoClient, ServerApiVersion } = require('mongodb');
-
-    // Get MongoDB credentials from environment variables
-    const username = process.env.MONGODB_USERNAME;
-    const password = process.env.MONGODB_PASSWORD;
-
-    if (!username || !password) {
-        console.error('MongoDB credentials not provided');
-        return null;
-    }
-
-    const uri = `mongodb+srv://${username}:${password}@cluster0.jio8mfu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-
-    const client = new MongoClient(uri, {
-        serverApi: {
-            version: ServerApiVersion.v1,
-            strict: true,
-            deprecationErrors: true,
-        }
-    });
-
-    try {
-        await client.connect();
-        const db = client.db(process.env.MONGODB_DB_NAME || 'figma_data');
-        const collection = db.collection('nodes_dev_store');
-
-        // Check if the document already exists
-        const existingDoc = await collection.findOne({ id });
-
-        if (existingDoc) {
-            // Document exists, update it
-            await collection.updateOne(
-                { id },
-                {
-                    $set: {
-                        nodeData,
-                        updatedAt: new Date()
-                    }
-                }
-            );
-            console.log(`Updated node ${id} in MongoDB`);
-        } else {
-            // Document doesn't exist, insert it
-            await collection.insertOne({
-                id,
-                nodeData,
-                createdAt: new Date(),
-                updatedAt: new Date()
-            });
-            console.log(`Saved node ${id} to MongoDB`);
-        }
-    } catch (error) {
-        console.error('MongoDB operation failed:', error);
-    } finally {
-        await client.close();
-    }
 }
