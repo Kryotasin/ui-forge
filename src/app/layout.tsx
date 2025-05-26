@@ -7,6 +7,7 @@ import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import Sidebar from "@/app/components/Sidebar";
 import RightNav from "@/app/components/RightNav";
+import { ApolloProvider } from "./components/providers/ApolloProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,7 +43,9 @@ export default function RootLayout({
                 </div>
 
                 <div className="col-12 col-md-6 col-main">
+                <ApolloProvider>
                   {children}
+                </ApolloProvider>
                 </div>
 
                 <div className="col-12 col-md-3 col-rightnav">

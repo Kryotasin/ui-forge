@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import useSWR from 'swr';
-import { fetcher } from '@/lib/fetcher';
+import { fetcher } from '@/lib/graphqlFetcher';
 import Toast from '../Toast';
 import { API_CONFIG, getApiUrl } from '@/lib/config';
 
