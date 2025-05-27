@@ -17,10 +17,10 @@ query GetDocuments {
 }
 `
 
-export const GET_DOCUMENT_NODES_BY_ID = `gql
-query GetDocumentNodesById($id: ID!) {
+export const GET_DOCUMENT_NODES = `gql
+query GetDocumentNodes() {
     data {
-        document(id: $id) {
+        document {
             id,
             name,
             type,
@@ -28,11 +28,6 @@ query GetDocumentNodesById($id: ID!) {
                 id,
                 name,
                 type,
-                children {
-                    id,
-                    name,
-                    type
-                }
             }
         }
     }
