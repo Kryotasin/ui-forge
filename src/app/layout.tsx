@@ -8,6 +8,8 @@ import Footer from "@/app/components/Footer";
 import Sidebar from "@/app/components/Sidebar";
 import RightNav from "@/app/components/RightNav";
 import { ApolloProvider } from "./components/providers/ApolloProvider";
+import { Provider } from "react-redux";
+import { store } from "@/lib/store";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,9 +45,11 @@ export default function RootLayout({
                 </div>
 
                 <div className="col-12 col-md-6 col-main">
-                <ApolloProvider>
-                  {children}
-                </ApolloProvider>
+                  <Provider store={store}>
+                    <ApolloProvider>
+                      {children}
+                    </ApolloProvider>
+                  </Provider>
                 </div>
 
                 <div className="col-12 col-md-3 col-rightnav">

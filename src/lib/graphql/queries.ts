@@ -7,23 +7,7 @@ query TestFigmaFileByKey($fileKey: String!) {
     fileKey
     message
     status
-    data {
-      document {
-        id
-        name
-        type
-        children {
-          id
-          name
-          type
-        }
-      }
-      name
-      version
-      role
-      lastModified
-      thumbnailUrl
-    }
+    data
   }
 }
 `

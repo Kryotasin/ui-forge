@@ -9,8 +9,8 @@ const MainContent: React.FC = () => {
     return (
         <div className="bg-gray-100 p-4 h-full">
             <Suspense fallback={<div className="p-12 text-center">Loading component data...</div>}>
-            <ComponentSelector />
-            Main Content
+                <ComponentSelector />
+                Main Content
             </Suspense>
         </div>
     );
