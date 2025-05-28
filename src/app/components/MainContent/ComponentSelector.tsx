@@ -1,9 +1,10 @@
 'use client';
 import { useState } from 'react';
 import useSWR from 'swr';
-import { fetcher } from '@/lib/graphqlFetcher';
 import Toast from '../Toast';
-import { API_CONFIG, getApiUrl } from '@/lib/config';
+import { GET_FIGMA_FILE_BY_KEY } from '@/lib/graphql/queries';
+import { useQuery } from '@apollo/client';
+
 
 export default function ComponentSelector() {
     const [dropdown1, setDropdown1] = useState('');
@@ -12,12 +13,14 @@ export default function ComponentSelector() {
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
 
     // Fetch data for each dropdown using the base URL
-    const { data: options1, error: error1 } = useSWR(getApiUrl(API_CONFIG.ENDPOINTS.OPTIONS1), fetcher);
-    const { data: options2, error: error2 } = useSWR(getApiUrl(API_CONFIG.ENDPOINTS.OPTIONS2), fetcher);
-    const { data: options3, error: error3 } = useSWR(getApiUrl(API_CONFIG.ENDPOINTS.OPTIONS3), fetcher);
-
+    const { loading, error, data } = useQuery(GET_FIGMA_FILE_BY_KEY, {
+        variables: { fileKey: "qyrtCkpQQ1yq1Nv3h0mbkq" },
+        onCompleted: (data) => {
+          console.log('Fetched Figma file data:', data);
+        }
+      });
     // Handle errors with toast
-    if (error1 || error2 || error3) {
+    if (error) {
         if (!toast) {
             setToast({
                 message: 'Failed to load options. Please try again.',
@@ -38,7 +41,7 @@ export default function ComponentSelector() {
         );
     }
 
-    if (!options1 || !options2 || !options3) return <div>Loading...</div>;
+    if (!data) return <div>Loading...</div>;
 
     const handleDropdownChange = (value: string, dropdownNumber: number) => {
         if (!value) {
@@ -73,7 +76,7 @@ export default function ComponentSelector() {
                             onChange={(e) => handleDropdownChange(e.target.value, 1)}
                         >
                             <option value="">Select Option 1</option>
-                            {options1.map((option: any) => (
+                            {data.map((option: any) => (
                                 <option key={option.id} value={option.id}>
                                     {option.name}
                                 </option>
@@ -87,7 +90,7 @@ export default function ComponentSelector() {
                             onChange={(e) => handleDropdownChange(e.target.value, 2)}
                         >
                             <option value="">Select Option 2</option>
-                            {options2.map((option: any) => (
+                            {data.map((option: any) => (
                                 <option key={option.id} value={option.id}>
                                     {option.name}
                                 </option>
@@ -101,7 +104,7 @@ export default function ComponentSelector() {
                             onChange={(e) => handleDropdownChange(e.target.value, 3)}
                         >
                             <option value="">Select Option 3</option>
-                            {options3.map((option: any) => (
+                            {data.map((option: any) => (
                                 <option key={option.id} value={option.id}>
                                     {option.name}
                                 </option>
