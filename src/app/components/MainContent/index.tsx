@@ -2,15 +2,16 @@
 
 import { Suspense } from "react";
 import ComponentSelector from './ComponentSelector';
+import ComponentRenderer from "./ComponentRenderer";
 
 const MainContent: React.FC = () => {
-    const nodeId = '6543:36648';
 
     return (
         <div className="bg-gray-100 p-4 h-full">
             <Suspense fallback={<div className="p-12 text-center">Loading component data...</div>}>
                 <ComponentSelector />
                 Main Content
+                <ComponentRenderer />
             </Suspense>
         </div>
     );

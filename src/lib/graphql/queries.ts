@@ -14,11 +14,6 @@ query TestFigmaFileByKey($fileKey: String!) {
 
 export const GET_FIGMA_FILE_DATA = gql`
 query TestFigmaFileData($fileKey: String!) {
-  figmaFileData(fileKey: $fileKey) {
-    fileKey
-    message
-    status
-    data
-  }
+  figmaFileData(fileKey: $fileKey)
 }
-`
+`;

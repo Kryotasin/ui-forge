@@ -1,19 +1,86 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Toast from '../../Toast';
+import { useAppSelector } from "@/lib/store/hooks";
+import { GET_FIGMA_FILE_DATA } from '@/lib/graphql/queries';
+import { useQuery } from '@apollo/client';
 
-interface SecondDropdownProps {
-    options: Array<{ id: string; name: string }>;
-    onSelect: (value: string) => void;
-}
-
-export default function SecondDropdown({ options, onSelect }: SecondDropdownProps) {
+export default function SecondDropdown() {
+    const { pageSelection } = useAppSelector(state => state.data);
+    const [options, setOptions] = useState<{ id: string; name: string }[]>([]);
     const [value, setValue] = useState('');
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
 
+    // Always fetch the data, but skip if no pageSelection
+    const { loading, error, data } = useQuery(GET_FIGMA_FILE_DATA, {
+        variables: {
+            fileKey: "qyrtCkpQQ1yq1Nv3h0mbkq"
+        },
+        skip: !pageSelection || pageSelection.trim() === '',
+        onError: (error) => {
+            console.error('GraphQL Error:', error);
+            setToast({
+                message: 'Failed to load options',
+                type: 'error'
+            });
+        }
+    });
+
+    // Process data when both data and pageSelection are available
+    useEffect(() => {
+        if (data && pageSelection) {
+            try {
+                console.log(data)
+                // Parse the raw JSON response
+                const parsedData = data.figmaFileData;
+
+                // Navigate to the specific node using pageSelection
+                const targetNode = parsedData?.nodes?.[pageSelection]?.document;
+
+                if (targetNode?.children) {
+                    const childOptions = targetNode.children.map((child: any) => ({
+                        id: child.id,
+                        name: child.name,
+                        type: child.type
+                    }));
+                    setOptions(childOptions);
+                } else {
+                    // Alternative: search through all nodes
+                    const allNodes = parsedData?.nodes || {};
+                    const matchingNode: any = Object.values(allNodes).find((node: any) =>
+                        node?.document?.id === pageSelection
+                    );
+
+                    if (matchingNode?.document?.children) {
+                        const childOptions = matchingNode.document.children.map((child: any) => ({
+                            id: child.id,
+                            name: child.name,
+                            type: child.type
+                        }));
+                        setOptions(childOptions);
+                    } else {
+                        setOptions([]);
+                        setToast({
+                            message: 'No child nodes found for selected page',
+                            type: 'info'
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error('Error parsing data:', err);
+                setToast({
+                    message: 'Error parsing data from server',
+                    type: 'error'
+                });
+                setOptions([]);
+            }
+        } else {
+            setOptions([]);
+        }
+    }, [data, pageSelection]);
+
     const handleChange = (newValue: string) => {
         setValue(newValue);
-        onSelect(newValue);
         if (!newValue) {
             setToast({
                 message: 'Please select an option',
@@ -22,14 +89,26 @@ export default function SecondDropdown({ options, onSelect }: SecondDropdownProp
         }
     };
 
+    // Show different states
+    if (!pageSelection) {
+        return (
+            <select className="form-select" disabled>
+                <option value="">Please select from first dropdown</option>
+            </select>
+        );
+    }
+
     return (
         <>
             <select
                 className="form-select"
                 value={value}
                 onChange={(e) => handleChange(e.target.value)}
+                disabled={loading}
             >
-                <option value="">Select Option 2</option>
+                <option value="">
+                    {loading ? 'Loading options...' : 'Select Option 2'}
+                </option>
                 {options.map((option) => (
                     <option key={option.id} value={option.id}>
                         {option.name}
@@ -45,4 +124,4 @@ export default function SecondDropdown({ options, onSelect }: SecondDropdownProp
             )}
         </>
     );
-} 
+}

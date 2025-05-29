@@ -3,12 +3,13 @@ import { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_FIGMA_FILE_BY_KEY } from '@/lib/graphql/queries';
 import Toast from '../../Toast';
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
+import { setPageSelection } from '@/lib/store/slices/dataSlice';
 
-interface FirstDropdownProps {
-    onSelect: (value: string) => void;
-}
+export default function FirstDropdown() {
+    const { pageSelection } = useAppSelector(state => state.data);
+    const dispatch = useAppDispatch();
 
-export default function FirstDropdown({ onSelect }: FirstDropdownProps) {
     const [value, setValue] = useState('');
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
     const [parsedOptions, setParsedOptions] = useState<Array<{ id: string; name: string }>>([]);
@@ -51,14 +52,7 @@ export default function FirstDropdown({ onSelect }: FirstDropdownProps) {
     }
 
     const handleChange = (newValue: string) => {
-        setValue(newValue);
-        onSelect(newValue);
-        if (!newValue) {
-            setToast({
-                message: 'Please select an option',
-                type: 'warning'
-            });
-        }
+        dispatch(setPageSelection(newValue));
     };
 
     return (
