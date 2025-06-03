@@ -4,12 +4,14 @@ interface AppState {
     pageSelection: string;
     nodeSelection: string;
     componentSelection: string;
+    nodeSelectionDataDump: {}
 }
 
 const initialState: AppState = {
     pageSelection: '',
     nodeSelection: '',
     componentSelection: '',
+    nodeSelectionDataDump: {}
 };
 
 export const dataSlice = createSlice({
@@ -22,6 +24,10 @@ export const dataSlice = createSlice({
         setNodeSelection: (state, action: PayloadAction<string>) => {
             state.nodeSelection = action.payload;
         },
+
+        setNodeSelectionDataDump: (state, action: PayloadAction<any[]>) => {
+            state.nodeSelectionDataDump = action.payload;
+        },
         setComponentSelection: (state, action: PayloadAction<string>) => {
             state.componentSelection = action.payload;
         },
@@ -32,9 +38,10 @@ export const dataSlice = createSlice({
             state.pageSelection = '';
             state.nodeSelection = '';
             state.componentSelection = '';
+            state.nodeSelectionDataDump = [];
         },
     },
 });
 
-export const { setPageSelection, setNodeSelection, setComponentSelection, setAllStrings, clearAllStrings } = dataSlice.actions;
+export const { setPageSelection, setNodeSelection, setNodeSelectionDataDump, setComponentSelection, setAllStrings, clearAllStrings } = dataSlice.actions;
 export default dataSlice.reducer;

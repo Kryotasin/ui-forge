@@ -51,8 +51,9 @@ export default function FirstDropdown() {
         );
     }
 
-    const handleChange = (newValue: string) => {
-        dispatch(setPageSelection(newValue));
+    const handleChange = (newValue: any) => {
+        dispatch(setPageSelection(newValue.target.value));
+        setValue(newValue.target.value);
     };
 
     return (
@@ -60,7 +61,7 @@ export default function FirstDropdown() {
             <select
                 className="form-select"
                 value={value}
-                onChange={(e) => handleChange(e.target.value)}
+                onChange={(e) => handleChange(e)}
             >
                 <option value="">Select Option 1</option>
                 {parsedOptions.map((option) => (

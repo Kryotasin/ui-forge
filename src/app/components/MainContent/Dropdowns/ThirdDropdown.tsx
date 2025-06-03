@@ -1,8 +1,11 @@
 'use client';
 import { useState } from 'react';
 import Toast from '../../Toast';
+import { useAppSelector } from '@/lib/store/hooks';
 
 export default function ThirdDropdown() {
+    const { nodeSelectionDataDump } = useAppSelector(state => state.data);
+
     const [value, setValue] = useState('');
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
 
@@ -16,7 +19,7 @@ export default function ThirdDropdown() {
             });
         }
     };
-
+    console.log(nodeSelectionDataDump)
     return (
         <>
             <select

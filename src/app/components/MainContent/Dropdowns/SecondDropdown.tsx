@@ -1,12 +1,15 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Toast from '../../Toast';
-import { useAppSelector } from "@/lib/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { GET_FIGMA_FILE_DATA } from '@/lib/graphql/queries';
 import { useQuery } from '@apollo/client';
+import { setNodeSelectionDataDump, setNodeSelection } from '@/lib/store/slices/dataSlice';
 
 export default function SecondDropdown() {
     const { pageSelection } = useAppSelector(state => state.data);
+    const dispatch = useAppDispatch();
+
     const [options, setOptions] = useState<{ id: string; name: string }[]>([]);
     const [value, setValue] = useState('');
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
@@ -30,7 +33,7 @@ export default function SecondDropdown() {
     useEffect(() => {
         if (data && pageSelection) {
             try {
-                console.log(data)
+                dispatch(setNodeSelectionDataDump(data));
                 // Parse the raw JSON response
                 const parsedData = data.figmaFileData;
 
@@ -79,14 +82,9 @@ export default function SecondDropdown() {
         }
     }, [data, pageSelection]);
 
+
     const handleChange = (newValue: string) => {
-        setValue(newValue);
-        if (!newValue) {
-            setToast({
-                message: 'Please select an option',
-                type: 'warning'
-            });
-        }
+        dispatch(setNodeSelection(newValue));
     };
 
     // Show different states
