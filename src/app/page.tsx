@@ -1,6 +1,6 @@
 // src/app/page.tsx
 import { Suspense } from 'react';
-import MainContent from '@/app/components/MainContent';
+import MainContent from './components/main-content';
 
 export default function Home() {
   return (

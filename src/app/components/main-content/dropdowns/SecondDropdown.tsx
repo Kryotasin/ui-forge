@@ -1,23 +1,23 @@
 'use client';
 import { useState, useEffect } from 'react';
-import Toast from '../../Toast';
+import Toast from '../../toast';
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { GET_FIGMA_FILE_DATA } from '@/lib/graphql/queries';
 import { useQuery } from '@apollo/client';
 import { setNodeSelectionDataDump, setNodeSelection } from '@/lib/store/slices/dataSlice';
 
 export default function SecondDropdown() {
-    const { pageSelection } = useAppSelector(state => state.data);
+    const { pageSelection, nodeSelection } = useAppSelector(state => state.data);
     const dispatch = useAppDispatch();
 
     const [options, setOptions] = useState<{ id: string; name: string }[]>([]);
-    const [value, setValue] = useState('');
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
 
     // Always fetch the data, but skip if no pageSelection
     const { loading, error, data } = useQuery(GET_FIGMA_FILE_DATA, {
         variables: {
-            fileKey: "qyrtCkpQQ1yq1Nv3h0mbkq"
+            fileKey: "qyrtCkpQQ1yq1Nv3h0mbkq",
+            nodeId: pageSelection
         },
         skip: !pageSelection || pageSelection.trim() === '',
         onError: (error) => {
@@ -100,7 +100,7 @@ export default function SecondDropdown() {
         <>
             <select
                 className="form-select"
-                value={value}
+                value={nodeSelection}
                 onChange={(e) => handleChange(e.target.value)}
                 disabled={loading}
             >

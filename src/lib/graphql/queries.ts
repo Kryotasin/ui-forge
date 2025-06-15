@@ -13,7 +13,7 @@ query TestFigmaFileByKey($fileKey: String!) {
 `
 
 export const GET_FIGMA_FILE_DATA = gql`
-query TestFigmaFileData($fileKey: String!) {
-  figmaFileData(fileKey: $fileKey)
-}
+  query TestFigmaFileData($fileKey: String!, $nodeId: String!) {
+    figmaFileData(fileKey: $fileKey, nodeId: $nodeId)
+  }
 `;

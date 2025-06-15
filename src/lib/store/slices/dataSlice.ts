@@ -22,6 +22,7 @@ export const dataSlice = createSlice({
             state.pageSelection = action.payload;
         },
         setNodeSelection: (state, action: PayloadAction<string>) => {
+            console.log(action)
             state.nodeSelection = action.payload;
         },
 

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_FIGMA_FILE_BY_KEY } from '@/lib/graphql/queries';
-import Toast from '../../Toast';
+import Toast from '../../toast';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { setPageSelection } from '@/lib/store/slices/dataSlice';
 

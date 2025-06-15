@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
-import FirstDropdown from './Dropdowns/FirstDropdown';
-import SecondDropdown from './Dropdowns/SecondDropdown';
-import ThirdDropdown from './Dropdowns/ThirdDropdown';
+import FirstDropdown from './dropdowns/FirstDropdown';
+import SecondDropdown from './dropdowns/SecondDropdown';
+import ThirdDropdown from './dropdowns/ThirdDropdown';
 
 export default function ComponentSelector() {
     const [options, setOptions] = useState<Array<{ id: string; name: string }>>([]);
