@@ -249,7 +249,7 @@ const Canvas = () => {
             const backgroundColor = extractColor(targetNode.fills?.[0]?.color) || '#1976d2';
             const cornerRadius = targetNode.cornerRadius || 4;
 
-            let textData = null;
+            let textData: any = null;
             let leftIconData = null;
             let rightIconData = null;
 
