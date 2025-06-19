@@ -4,8 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { Stage, Layer, Rect, Text, Group, Image } from 'react-konva';
 import useImage from 'use-image';
-import Toast from '../../Toast';
-
+import Toast from '../../toast';
 interface FigmaButtonData {
     x: number;
     y: number;
