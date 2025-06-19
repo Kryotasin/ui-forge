@@ -209,7 +209,7 @@ const Canvas = () => {
 
     const getSVGFromFigmaAPI = async (vectorNodeId: string): Promise<string | null> => {
         try {
-            const response = await fetch(`https://api.figma.com/v1/images/qyrtCkpQQ1yq1Nv3h0mbkq?ids=${vectorNodeId}&format=svg`);
+            const response = await fetch(`/api/figma-svg?fileKey=qyrtCkpQQ1yq1Nv3h0mbkq&nodeIds=${vectorNodeId}`);
 
             if (!response.ok) {
                 throw new Error(`API response error: ${response.status}`);
