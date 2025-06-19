@@ -1,6 +1,7 @@
 'use client';
 
 import { useAppSelector } from "@/lib/store/hooks";
+import Canvas from "./canvas";
 
 export default function ComponentRenderer() {
     const { pageSelection, nodeSelection, componentSelection } = useAppSelector(state => state.data);
@@ -11,6 +12,8 @@ export default function ComponentRenderer() {
             <p>String 1: {pageSelection}</p>
             <p>String 2: {nodeSelection}</p>
             <p>String 3: {componentSelection}</p>
+
+            <Canvas />
         </div>
     );
 }

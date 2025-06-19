@@ -13,6 +13,7 @@
     "@reduxjs/toolkit": "^2.8.2",
     "axios": "^1.9.0",
     "bootstrap": "^5.3.6",
+    "canvas": "^3.1.0",
     "konva": "^9.3.20",
     "lodash": "^4.17.21",
     "mongodb": "^6.16.0",
@@ -20,7 +21,7 @@
     "papaparse": "^5.5.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-konva": "^19.0.4",
+    "react-konva": "^19.0.6",
     "react-redux": "^9.2.0",
     "sass": "^1.88.0",
     "swr": "^2.3.3"

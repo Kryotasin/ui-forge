@@ -4,14 +4,16 @@ interface AppState {
     pageSelection: string;
     nodeSelection: string;
     componentSelection: string;
-    nodeSelectionDataDump: {}
+    nodeSelectionDataDump: {};
+    componentSelectionDump: {};
 }
 
 const initialState: AppState = {
     pageSelection: '',
     nodeSelection: '',
     componentSelection: '',
-    nodeSelectionDataDump: {}
+    nodeSelectionDataDump: {},
+    componentSelectionDump: {}
 };
 
 export const dataSlice = createSlice({
@@ -31,6 +33,9 @@ export const dataSlice = createSlice({
         },
         setComponentSelection: (state, action: PayloadAction<string>) => {
             state.componentSelection = action.payload;
+        },
+        setComponentSelectionDump: (state, action: PayloadAction<any>) => {
+            state.componentSelectionDump = action.payload;
         },
         setAllStrings: (state, action: PayloadAction<AppState>) => {
             return action.payload;
