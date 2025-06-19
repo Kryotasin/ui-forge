@@ -2,8 +2,8 @@ import { GET_FIGMA_FILE_DATA } from '@/lib/graphql/queries';
 import { useQuery } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { Stage, Layer, Rect, Text, Group } from 'react-konva';
-import Toast from '../../toast';
+import { Stage, Layer, Rect, Text, Group, Image } from 'react-konva';
+import Toast from '../../Toast';
 
 interface FigmaButtonData {
     x: number;
@@ -28,6 +28,8 @@ interface FigmaButtonData {
         width: number;
         height: number;
         color: string;
+        componentId?: string;
+        svgImage?: HTMLImageElement;
     };
     rightIcon?: {
         x: number;
@@ -35,14 +37,18 @@ interface FigmaButtonData {
         width: number;
         height: number;
         color: string;
+        componentId?: string;
+        svgImage?: HTMLImageElement;
     };
 }
 
 const Canvas = () => {
     const { componentSelection } = useAppSelector(state => state.data);
     const [buttonData, setButtonData] = useState<FigmaButtonData | null>(null);
+    const [loadingIcons, setLoadingIcons] = useState(false);
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
 
+    // Main component query
     const { loading, error, data } = useQuery(GET_FIGMA_FILE_DATA, {
         variables: {
             fileKey: "qyrtCkpQQ1yq1Nv3h0mbkq",
@@ -57,7 +63,28 @@ const Canvas = () => {
             });
         }
     });
-    console.log(data)
+
+    // Icon component queries (dynamic based on found componentIds)
+    const [leftIconComponentId, setLeftIconComponentId] = useState<string | null>(null);
+    const [rightIconComponentId, setRightIconComponentId] = useState<string | null>(null);
+
+    const { data: leftIconData } = useQuery(GET_FIGMA_FILE_DATA, {
+        variables: {
+            fileKey: "qyrtCkpQQ1yq1Nv3h0mbkq",
+            nodeId: leftIconComponentId
+        },
+        skip: !leftIconComponentId,
+    });
+
+    const { data: rightIconData } = useQuery(GET_FIGMA_FILE_DATA, {
+        variables: {
+            fileKey: "qyrtCkpQQ1yq1Nv3h0mbkq",
+            nodeId: rightIconComponentId
+        },
+        skip: !rightIconComponentId,
+    });
+
+    // Parse main button component
     useEffect(() => {
         if (data && componentSelection) {
             try {
@@ -65,15 +92,11 @@ const Canvas = () => {
                 const parsedButton = parseFigmaButton(figmaData, componentSelection);
                 if (parsedButton) {
                     setButtonData(parsedButton);
-                    setToast({
-                        message: 'Component loaded successfully',
-                        type: 'success'
-                    });
-                } else {
-                    setToast({
-                        message: 'Could not parse component data',
-                        type: 'warning'
-                    });
+
+                    // Extract icon component IDs for drilling down
+                    const iconIds = extractIconComponentIds(figmaData, componentSelection);
+                    setLeftIconComponentId(iconIds.leftIconComponentId);
+                    setRightIconComponentId(iconIds.rightIconComponentId);
                 }
             } catch (err) {
                 console.error('Error parsing Figma data:', err);
@@ -85,23 +108,151 @@ const Canvas = () => {
         }
     }, [data, componentSelection]);
 
+    // Process left icon
+    useEffect(() => {
+        if (leftIconData && buttonData) {
+            processIconData(leftIconData, 'left');
+        }
+    }, [leftIconData, buttonData]);
+
+    // Process right icon
+    useEffect(() => {
+        if (rightIconData && buttonData) {
+            processIconData(rightIconData, 'right');
+        }
+    }, [rightIconData, buttonData]);
+
+    const extractIconComponentIds = (figmaData: any, nodeId: string) => {
+        const targetNode = figmaData?.nodes?.[nodeId]?.document;
+        let leftIconComponentId = null;
+        let rightIconComponentId = null;
+
+        const searchForIcons = (node: any) => {
+            if (!node.children) return;
+
+            node.children.forEach((child: any) => {
+                if (child.type === 'INSTANCE' && child.name?.includes('Icon')) {
+                    const iconType = child.componentProperties?.Type?.value;
+
+                    if (iconType === 'ArrowLeft' || child.name.includes('Left')) {
+                        leftIconComponentId = child.componentId;
+                    } else if (iconType === 'ArrowRight' || child.name.includes('Right')) {
+                        rightIconComponentId = child.componentId;
+                    }
+                }
+                searchForIcons(child);
+            });
+        };
+
+        searchForIcons(targetNode);
+        return { leftIconComponentId, rightIconComponentId };
+    };
+
+    const processIconData = async (iconData: any, position: 'left' | 'right') => {
+        try {
+            setLoadingIcons(true);
+
+            // Find vector node in icon component
+            const iconNode = Object.values(iconData.figmaFileData.nodes)[0] as any;
+            const vectorNode = findVectorNode(iconNode.document);
+
+            if (vectorNode) {
+                // Get SVG from Figma Images API
+                const svgUrl = await getSVGFromFigmaAPI(vectorNode.id);
+                if (svgUrl) {
+                    // Fetch and process SVG
+                    const svgContent = await fetchSVGFromUrl(svgUrl);
+                    const processedSVG = processSVG(svgContent, '#ffffff'); // White color
+                    const svgImage = await createImageFromSVG(processedSVG);
+
+                    // Update button data with SVG image
+                    setButtonData(prev => {
+                        if (!prev) return prev;
+
+                        const updated = { ...prev };
+                        if (position === 'left' && updated.leftIcon) {
+                            updated.leftIcon.svgImage = svgImage;
+                        } else if (position === 'right' && updated.rightIcon) {
+                            updated.rightIcon.svgImage = svgImage;
+                        }
+                        return updated;
+                    });
+                }
+            }
+        } catch (error) {
+            console.error(`Error processing ${position} icon:`, error);
+            setToast({
+                message: `Failed to load ${position} icon`,
+                type: 'warning'
+            });
+        } finally {
+            setLoadingIcons(false);
+        }
+    };
+
+    const findVectorNode = (node: any): any => {
+        if (node.type === 'VECTOR') return node;
+
+        if (node.children) {
+            for (const child of node.children) {
+                const found = findVectorNode(child);
+                if (found) return found;
+            }
+        }
+        return null;
+    };
+
+    const getSVGFromFigmaAPI = async (vectorNodeId: string): Promise<string | null> => {
+        try {
+            // This should call your backend API route that handles Figma Images API
+            const response = await fetch(`/api/figma-svg?fileKey=qyrtCkpQQ1yq1Nv3h0mbkq&nodeIds=${vectorNodeId}`);
+            const data = await response.json();
+            return data.images?.[vectorNodeId] || null;
+        } catch (error) {
+            console.error('Error getting SVG from Figma API:', error);
+            return null;
+        }
+    };
+
+    const fetchSVGFromUrl = async (svgUrl: string): Promise<string> => {
+        const response = await fetch(svgUrl);
+        if (!response.ok) throw new Error(`Failed to fetch SVG: ${response.status}`);
+        return await response.text();
+    };
+
+    const processSVG = (svgContent: string, fillColor: string = '#ffffff'): string => {
+        return svgContent
+            .replace(/fill="[^"]*"/g, '')
+            .replace(/fill='[^']*'/g, '')
+            .replace(/<path/g, `<path fill="${fillColor}"`)
+            .replace(/<circle/g, `<circle fill="${fillColor}"`)
+            .replace(/<rect/g, `<rect fill="${fillColor}"`)
+            .replace(/<polygon/g, `<polygon fill="${fillColor}"`);
+    };
+
+    const createImageFromSVG = (svgContent: string): Promise<HTMLImageElement> => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgContent)}`;
+            img.src = dataUrl;
+        });
+    };
+
     const parseFigmaButton = (figmaData: any, nodeId: string): FigmaButtonData | null => {
         try {
-            // Find the target node in the Figma data
             const targetNode = figmaData?.nodes?.[nodeId]?.document;
             if (!targetNode) return null;
 
-            // Extract button container properties
             const buttonRect = targetNode.absoluteBoundingBox;
             const backgroundColor = extractColor(targetNode.fills?.[0]?.color) || '#1976d2';
             const cornerRadius = targetNode.cornerRadius || 4;
 
-            // Find text content
-            let textData: any = null;
+            let textData = null;
             let leftIconData = null;
             let rightIconData = null;
 
-            // Search through children to find text and icons
             const searchChildren = (node: any) => {
                 if (!node.children) return;
 
@@ -123,10 +274,10 @@ const Canvas = () => {
                             y: child.absoluteBoundingBox.y - buttonRect.y,
                             width: child.absoluteBoundingBox.width,
                             height: child.absoluteBoundingBox.height,
-                            color: extractColor(child.fills?.[0]?.color) || '#ffffff'
+                            color: extractColor(child.fills?.[0]?.color) || '#ffffff',
+                            componentId: child.componentId
                         };
 
-                        // Determine if it's left or right icon based on position
                         if (textData) {
                             if (iconData.x < textData.x) {
                                 leftIconData = iconData;
@@ -134,12 +285,9 @@ const Canvas = () => {
                                 rightIconData = iconData;
                             }
                         } else {
-                            // If no text yet, assume it's left icon
                             leftIconData = iconData;
                         }
                     }
-
-                    // Recursively search children
                     searchChildren(child);
                 });
             };
@@ -147,7 +295,7 @@ const Canvas = () => {
             searchChildren(targetNode);
 
             return {
-                x: 100, // Position on canvas
+                x: 100,
                 y: 100,
                 width: buttonRect.width,
                 height: buttonRect.height,
@@ -197,13 +345,25 @@ const Canvas = () => {
 
                 {/* Left icon */}
                 {buttonData.leftIcon && (
-                    <Rect
-                        x={buttonData.leftIcon.x}
-                        y={buttonData.leftIcon.y}
-                        width={buttonData.leftIcon.width}
-                        height={buttonData.leftIcon.height}
-                        fill={buttonData.leftIcon.color}
-                    />
+                    buttonData.leftIcon.svgImage ? (
+                        <Image
+                            x={buttonData.leftIcon.x}
+                            y={buttonData.leftIcon.y}
+                            width={buttonData.leftIcon.width}
+                            height={buttonData.leftIcon.height}
+                            image={buttonData.leftIcon.svgImage}
+                        />
+                    ) : (
+                        <Rect
+                            x={buttonData.leftIcon.x}
+                            y={buttonData.leftIcon.y}
+                            width={buttonData.leftIcon.width}
+                            height={buttonData.leftIcon.height}
+                            fill="#cccccc"
+                            stroke="#999999"
+                            strokeWidth={1}
+                        />
+                    )
                 )}
 
                 {/* Button text */}
@@ -222,13 +382,25 @@ const Canvas = () => {
 
                 {/* Right icon */}
                 {buttonData.rightIcon && (
-                    <Rect
-                        x={buttonData.rightIcon.x}
-                        y={buttonData.rightIcon.y}
-                        width={buttonData.rightIcon.width}
-                        height={buttonData.rightIcon.height}
-                        fill={buttonData.rightIcon.color}
-                    />
+                    buttonData.rightIcon.svgImage ? (
+                        <Image
+                            x={buttonData.rightIcon.x}
+                            y={buttonData.rightIcon.y}
+                            width={buttonData.rightIcon.width}
+                            height={buttonData.rightIcon.height}
+                            image={buttonData.rightIcon.svgImage}
+                        />
+                    ) : (
+                        <Rect
+                            x={buttonData.rightIcon.x}
+                            y={buttonData.rightIcon.y}
+                            width={buttonData.rightIcon.width}
+                            height={buttonData.rightIcon.height}
+                            fill="#cccccc"
+                            stroke="#999999"
+                            strokeWidth={1}
+                        />
+                    )
                 )}
             </Group>
         );
@@ -276,7 +448,10 @@ const Canvas = () => {
 
     return (
         <div className="p-4">
-            <h4 className="mb-3">Rendered Component: {componentSelection}</h4>
+            <h4 className="mb-3">
+                Rendered Component: {componentSelection}
+                {loadingIcons && <span className="text-primary"> (Loading icons...)</span>}
+            </h4>
 
             <Stage width={800} height={600}>
                 <Layer>
@@ -322,8 +497,12 @@ const Canvas = () => {
                     <p><strong>Text:</strong> {buttonData.text.content}</p>
                     <p><strong>Size:</strong> {buttonData.width} × {buttonData.height}</p>
                     <p><strong>Background:</strong> {buttonData.backgroundColor}</p>
-                    {buttonData.leftIcon && <p><strong>Left Icon:</strong> Present</p>}
-                    {buttonData.rightIcon && <p><strong>Right Icon:</strong> Present</p>}
+                    {buttonData.leftIcon && (
+                        <p><strong>Left Icon:</strong> {buttonData.leftIcon.svgImage ? '✅ Loaded' : '⏳ Loading...'}</p>
+                    )}
+                    {buttonData.rightIcon && (
+                        <p><strong>Right Icon:</strong> {buttonData.rightIcon.svgImage ? '✅ Loaded' : '⏳ Loading...'}</p>
+                    )}
                 </div>
             )}
 
