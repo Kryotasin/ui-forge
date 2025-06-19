@@ -3,6 +3,7 @@ import { useQuery } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { Stage, Layer, Rect, Text, Group, Image } from 'react-konva';
+import useImage from 'use-image';
 import Toast from '../../Toast';
 
 interface FigmaButtonData {
@@ -29,7 +30,7 @@ interface FigmaButtonData {
         height: number;
         color: string;
         componentId?: string;
-        svgImage?: HTMLImageElement;
+        svgUrl?: string;
     };
     rightIcon?: {
         x: number;
@@ -38,7 +39,7 @@ interface FigmaButtonData {
         height: number;
         color: string;
         componentId?: string;
-        svgImage?: HTMLImageElement;
+        svgUrl?: string;
     };
 }
 
@@ -47,6 +48,10 @@ const Canvas = () => {
     const [buttonData, setButtonData] = useState<FigmaButtonData | null>(null);
     const [loadingIcons, setLoadingIcons] = useState(false);
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
+
+    // Use useImage hook for loading SVG images
+    const [leftIconImage, leftIconStatus] = useImage(buttonData?.leftIcon?.svgUrl || '');
+    const [rightIconImage, rightIconStatus] = useImage(buttonData?.rightIcon?.svgUrl || '');
 
     // Main component query
     const { loading, error, data } = useQuery(GET_FIGMA_FILE_DATA, {
@@ -157,23 +162,23 @@ const Canvas = () => {
             const vectorNode = findVectorNode(iconNode.document);
 
             if (vectorNode) {
-                // Get SVG from Figma Images API
+                // Get SVG URL from Figma Images API
                 const svgUrl = await getSVGFromFigmaAPI(vectorNode.id);
                 if (svgUrl) {
-                    // Fetch and process SVG
+                    // Fetch and process SVG to create a data URL
                     const svgContent = await fetchSVGFromUrl(svgUrl);
                     const processedSVG = processSVG(svgContent, '#ffffff'); // White color
-                    const svgImage = await createImageFromSVG(processedSVG);
+                    const dataUrl = svgToDataUrl(processedSVG);
 
-                    // Update button data with SVG image
+                    // Update button data with SVG URL for useImage hook
                     setButtonData(prev => {
                         if (!prev) return prev;
 
                         const updated = { ...prev };
                         if (position === 'left' && updated.leftIcon) {
-                            updated.leftIcon.svgImage = svgImage;
+                            updated.leftIcon.svgUrl = dataUrl;
                         } else if (position === 'right' && updated.rightIcon) {
-                            updated.rightIcon.svgImage = svgImage;
+                            updated.rightIcon.svgUrl = dataUrl;
                         }
                         return updated;
                     });
@@ -204,9 +209,19 @@ const Canvas = () => {
 
     const getSVGFromFigmaAPI = async (vectorNodeId: string): Promise<string | null> => {
         try {
-            // This should call your backend API route that handles Figma Images API
-            const response = await fetch(`/api/figma-svg?fileKey=qyrtCkpQQ1yq1Nv3h0mbkq&nodeIds=${vectorNodeId}`);
+            const response = await fetch(`https://api.figma.com/v1/images/qyrtCkpQQ1yq1Nv3h0mbkq?ids=${vectorNodeId}&format=svg`);
+
+            if (!response.ok) {
+                throw new Error(`API response error: ${response.status}`);
+            }
+
             const data = await response.json();
+
+            if (data.error) {
+                console.error('API returned error:', data.error);
+                return null;
+            }
+
             return data.images?.[vectorNodeId] || null;
         } catch (error) {
             console.error('Error getting SVG from Figma API:', error);
@@ -230,14 +245,9 @@ const Canvas = () => {
             .replace(/<polygon/g, `<polygon fill="${fillColor}"`);
     };
 
-    const createImageFromSVG = (svgContent: string): Promise<HTMLImageElement> => {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.onerror = reject;
-            const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgContent)}`;
-            img.src = dataUrl;
-        });
+    const svgToDataUrl = (svgContent: string): string => {
+        const encoded = encodeURIComponent(svgContent);
+        return `data:image/svg+xml;charset=utf-8,${encoded}`;
     };
 
     const parseFigmaButton = (figmaData: any, nodeId: string): FigmaButtonData | null => {
@@ -345,13 +355,13 @@ const Canvas = () => {
 
                 {/* Left icon */}
                 {buttonData.leftIcon && (
-                    buttonData.leftIcon.svgImage ? (
+                    leftIconImage && leftIconStatus === 'loaded' ? (
                         <Image
                             x={buttonData.leftIcon.x}
                             y={buttonData.leftIcon.y}
                             width={buttonData.leftIcon.width}
                             height={buttonData.leftIcon.height}
-                            image={buttonData.leftIcon.svgImage}
+                            image={leftIconImage}
                         />
                     ) : (
                         <Rect
@@ -359,7 +369,7 @@ const Canvas = () => {
                             y={buttonData.leftIcon.y}
                             width={buttonData.leftIcon.width}
                             height={buttonData.leftIcon.height}
-                            fill="#cccccc"
+                            fill={leftIconStatus === 'loading' ? "#f0f0f0" : "#cccccc"}
                             stroke="#999999"
                             strokeWidth={1}
                         />
@@ -382,13 +392,13 @@ const Canvas = () => {
 
                 {/* Right icon */}
                 {buttonData.rightIcon && (
-                    buttonData.rightIcon.svgImage ? (
+                    rightIconImage && rightIconStatus === 'loaded' ? (
                         <Image
                             x={buttonData.rightIcon.x}
                             y={buttonData.rightIcon.y}
                             width={buttonData.rightIcon.width}
                             height={buttonData.rightIcon.height}
-                            image={buttonData.rightIcon.svgImage}
+                            image={rightIconImage}
                         />
                     ) : (
                         <Rect
@@ -396,7 +406,7 @@ const Canvas = () => {
                             y={buttonData.rightIcon.y}
                             width={buttonData.rightIcon.width}
                             height={buttonData.rightIcon.height}
-                            fill="#cccccc"
+                            fill={rightIconStatus === 'loading' ? "#f0f0f0" : "#cccccc"}
                             stroke="#999999"
                             strokeWidth={1}
                         />
@@ -498,10 +508,18 @@ const Canvas = () => {
                     <p><strong>Size:</strong> {buttonData.width} × {buttonData.height}</p>
                     <p><strong>Background:</strong> {buttonData.backgroundColor}</p>
                     {buttonData.leftIcon && (
-                        <p><strong>Left Icon:</strong> {buttonData.leftIcon.svgImage ? '✅ Loaded' : '⏳ Loading...'}</p>
+                        <p><strong>Left Icon:</strong> {
+                            leftIconStatus === 'loaded' ? '✅ Loaded' :
+                                leftIconStatus === 'loading' ? '⏳ Loading...' :
+                                    leftIconStatus === 'failed' ? '❌ Failed' : '⚠️ Pending'
+                        }</p>
                     )}
                     {buttonData.rightIcon && (
-                        <p><strong>Right Icon:</strong> {buttonData.rightIcon.svgImage ? '✅ Loaded' : '⏳ Loading...'}</p>
+                        <p><strong>Right Icon:</strong> {
+                            rightIconStatus === 'loaded' ? '✅ Loaded' :
+                                rightIconStatus === 'loading' ? '⏳ Loading...' :
+                                    rightIconStatus === 'failed' ? '❌ Failed' : '⚠️ Pending'
+                        }</p>
                     )}
                 </div>
             )}

@@ -24,7 +24,8 @@
     "react-konva": "^19.0.6",
     "react-redux": "^9.2.0",
     "sass": "^1.88.0",
-    "swr": "^2.3.3"
+    "swr": "^2.3.3",
+    "use-image": "^1.1.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
